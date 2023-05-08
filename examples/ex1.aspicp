@@ -1,0 +1,54 @@
+% Strict rules
+s:-a,b.
+q:-r.s.
+t:-u,d.
+t:-c.
+% inconsistent strict rules
+h1:-d1,d2,d3.
+h2:-d4,d5,d6.
+
+% inconsistent ctd
+d1:h1.
+d4:d5.
+
+% inconsistent ctd
+^d1.
+^d4.
+
+
+% Defeasible rules
+ar1:s:-c,d.
+ar2:p:-q,e.
+ar3:w:-a,f.
+
+% Strict premises (axioms)
+a.
+b.
+c.
+
+% Defeasible premises
+^d.
+^e.
+^f.
+
+% Contraries.
+
+% contraries of defeasible rules
+ar1:p.
+ar1:u.
+ar2:f.
+ar3:s.
+
+% contraries of heads of defeasible rules
+s:x.
+w:e.
+p:r.
+
+% contraries of ordinary premises
+d:f.
+e:r.
+f:p.
+f:s.
+
+% Goals
+?p.

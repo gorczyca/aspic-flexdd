@@ -1,0 +1,27 @@
+% Strict rules
+r:-p,q.
+v:-nS.
+
+% Defeasible rules
+d1:p:-q.
+d2:t:-s.
+d3:nD1:-t.
+d4:v:-u.
+d5:nT:-v,x.
+
+% Strict premises (axioms)
+p.
+
+% Defeasible premises
+^s.
+^u.
+^x.
+
+
+% Contraries.
+
+d1:nD1.
+d2:nD2.
+d3:nD3.
+d4:nD4.
+d5:nD5.
