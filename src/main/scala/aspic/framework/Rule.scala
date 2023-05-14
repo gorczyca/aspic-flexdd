@@ -6,6 +6,7 @@ case class Rule(head: String, body: Set[String], isStrict: Boolean, label: Optio
     this(head, body, true, None)
   }
 
+  
   lazy val statements: Set[String] = body + head
 
   override def toString: String = s"${ label match

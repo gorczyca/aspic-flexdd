@@ -3,9 +3,8 @@ package flexdds.dds
 import aspic.framework.Rule
 
 object DisputeState {
-  // TODO: dumb
- def apply(): DisputeState = DisputeState(Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty)
- def apply(inconsistentRules: Set[Rule]): DisputeState = DisputeState(Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,inconsistentRules,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty)
+ def apply(): DisputeState = DisputeState(Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty,Set.empty, Set.empty,Set.empty)
+ def apply(inconsistentStrictRules: Set[Rule], inconsistentDefeasibleRules: Set[Rule]): DisputeState = DisputeState(Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,inconsistentStrictRules,inconsistentDefeasibleRules,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty,Set.empty,Set.empty,Set.empty)
 
 }
 
@@ -21,7 +20,7 @@ case class DisputeState(
                        adoptedOrdinaryPremises: Set[String],  // defences
                        adoptedDefeasibleRules: Set[Rule],     // rule-defences
                        rejectedOrdinaryPremises: Set[String], // culprits
-                       rejectedDefeasibleRules: Set[String],  // rule-culprits
+                       rejectedDefeasibleRules: Set[Rule],  // rule-culprits
 
                        //
                        blockedRules: Set[Rule],
@@ -45,8 +44,11 @@ case class DisputeState(
                        bUnblockedCompleteRules: Set[Rule],
 
                        // TODO: there will be one more, only for some particular semantics
-                       bUnblockedSSupportingStatements: Set[String],
-                       bUnblockedSSupportingRules: Set[Rule],
+                       bUnblockedStatementsSupportingContrariesOfAdoptedPieces: Set[String],
+                       bUnblockedRulesSupportingContrariesOfAdoptedPieces: Set[Rule],
+
+                       bUnblockedStatementsSupportingContrariesOfCurrentlyDefendedPieces: Set[String],
+                       bUnblockedRulesSupportingContrariesOfCurrentlyDefendedPieces: Set[Rule],
 
                        //
                        ordinaryPremiseCulpritsCandidates: Set[String],
