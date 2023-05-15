@@ -61,7 +61,7 @@ sealed trait DisputeStateDelta {
       )
 
       val (nPPlayedCompleteStatements, nPPlayedCompleteRules) = getPPlayedCompletePieces(
-        pStatements intersect framework.premises,
+        state.pCompleteStatements ++ (pStatements intersect framework.premises),
         state.pCompleteRules,
         pRules -- state.pCompleteRules
       )
@@ -96,6 +96,7 @@ sealed trait DisputeStateDelta {
       )
 
       DisputeState(
+        state.goals,
         nPStatements,
         nPRules,
         nOStatements,

@@ -6,14 +6,16 @@ import aspic.framework.Rule
 
 
 object DisputeState {
- def apply(): DisputeState = DisputeState(Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty,Set.empty, Set.empty,Set.empty)
- def apply(inconsistentStrictRules: Set[Rule], inconsistentDefeasibleRules: Set[Rule]): DisputeState = DisputeState(Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,inconsistentStrictRules,inconsistentDefeasibleRules,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty,Set.empty,Set.empty,Set.empty)
+ def apply(): DisputeState = DisputeState(Set.empty, Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty,Set.empty, Set.empty,Set.empty)
+ def apply(goals: Set[String], inconsistentStrictRules: Set[Rule], inconsistentDefeasibleRules: Set[Rule]): DisputeState = DisputeState(goals, Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,inconsistentStrictRules,inconsistentDefeasibleRules,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty,Set.empty,Set.empty,Set.empty)
 
 }
 
 case class DisputeState(
                        // TODO: could maybe divide it into the following sub-classes
                        // basic things
+                       goals: Set[String],
+
                        pStatements: Set[String],
                        pRules: Set[Rule],
                        oStatements: Set[String],
@@ -69,7 +71,7 @@ case class DisputeState(
 
   // TODO: only temporary
   private val minimalPropertiesNames: Seq[String] = Seq("pStatements", "pRules", "oStatements", "oRules")
-  private val allPropertiesNames: Seq[String] = Seq("pStatements", "pRules", "oStatements", "oRules", "adoptedOrdinaryPremises", "adoptedDefeasibleRules", "rejectedOrdinaryPremises", "rejectedDefeasibleRules", "blockedRules", "pBlockedStrictRules", "pBlockedDefeasibleRules", "pPlayedUnexpandedStatements", "playedFullyExpandedStatements", "bBlockedPlayedStatements", "bBlockedPlayedRules", "pCompleteStatements", "pCompleteRules", "bUnblockedCompleteStatements", "bUnblockedCompleteRules", "bUnblockedStatementsSupportingContrariesOfAdoptedPieces", "bUnblockedRulesSupportingContrariesOfAdoptedPieces", "bUnblockedStatementsSupportingContrariesOfCurrentlyDefendedPieces", "bUnblockedRulesSupportingContrariesOfCurrentlyDefendedPieces", "ordinaryPremiseCulpritsCandidates", "defeasibleRuleCulpritsCandidates", "currentlyDefendedOrdinaryPremises", "currentlyDefendedDefeasibleRules")
+  private val allPropertiesNames: Seq[String] = Seq("goals", "pStatements", "pRules", "oStatements", "oRules", "adoptedOrdinaryPremises", "adoptedDefeasibleRules", "rejectedOrdinaryPremises", "rejectedDefeasibleRules", "blockedRules", "pBlockedStrictRules", "pBlockedDefeasibleRules", "pPlayedUnexpandedStatements", "playedFullyExpandedStatements", "bBlockedPlayedStatements", "bBlockedPlayedRules", "pCompleteStatements", "pCompleteRules", "bUnblockedCompleteStatements", "bUnblockedCompleteRules", "bUnblockedStatementsSupportingContrariesOfAdoptedPieces", "bUnblockedRulesSupportingContrariesOfAdoptedPieces", "bUnblockedStatementsSupportingContrariesOfCurrentlyDefendedPieces", "bUnblockedRulesSupportingContrariesOfCurrentlyDefendedPieces", "ordinaryPremiseCulpritsCandidates", "defeasibleRuleCulpritsCandidates", "currentlyDefendedOrdinaryPremises", "currentlyDefendedDefeasibleRules")
 
   private def getClassFields(fieldNames: Seq[String]): String = this.getClass.getDeclaredFields.filter(f => fieldNames.contains(f.getName)).map(field => s"${field.getName}:\n\t${field.get(this).asInstanceOf[Set[Any]].mkString("; ")}").mkString("\n")
 

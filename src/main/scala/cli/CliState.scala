@@ -2,19 +2,20 @@ package cli
 
 import scala.io.AnsiColor
 import scala.util.matching.Regex
-
 import flexdds.dds.DisputeState
 import aspic.framework.Framework
 import flexdds.dds.{DisputeStateDelta, ProponentStatement}
 import flexdds.enums.MoveType
-import flexdds.enums.{TerminationCriterion, AdvancementType}
+import flexdds.enums.{AdvancementType, TerminationCriterion}
+
+import scala.annotation.tailrec
 
 object CliState {
   def apply(goal: String,
             framework: Framework,
             advancement: AdvancementType,
             termination: TerminationCriterion): CliState = {
-    val state = ProponentStatement(goal).performMove(DisputeState(framework.inconsistentStrictRules,framework.inconsistentDefeasibleRules))(framework)
+    val state = ProponentStatement(goal).performMove(DisputeState(Set(goal), framework.inconsistentStrictRules,framework.inconsistentDefeasibleRules))(framework)
 
     CliState(state, state, framework, advancement, termination, advancement.possibleMoves(framework, state), List.empty)
   }
@@ -26,8 +27,17 @@ object CliState {
     input
   }
 
+  private def communicateTermination(state: CliState): Unit = {
+    state.termination.checkIfOver(state.currentState, state.framework) match
+      case Some(true) => println("Derivation finished. Proponent won")
+      case Some(false) => println("Derivation finished. Opponent won")
+      case _ =>
+  }
+
+  @tailrec
   def runCliInterface(state: CliState): Unit = {
     val newState = processInput(state)
+    communicateTermination(newState)
 
     if (!newState.quit) runCliInterface(newState)
   }
@@ -41,6 +51,14 @@ object CliState {
       case "q" => state.copy(quit = true)
       case "s" => println(state.currentState); state
       case "ss" => println(state.currentState.toFullString); state
+      case "b" =>
+        val nextPerformedMoves = state.performedMoves.dropRight(1)
+        // reconstruct the state
+        val nextDState = nextPerformedMoves.foldLeft(state.initialState)((cState, move) => move.performMove(cState)(state.framework))
+        val nextPossibleMoves = state.advancement.possibleMoves(state.framework, nextDState)
+
+        state.copy(currentState = nextDState, possibleMoves = nextPossibleMoves, performedMoves = nextPerformedMoves)
+
 
       case movePattern(moveString, indexString) if MoveType.values.map(_.toString).contains(moveString.toUpperCase) =>
         val move = MoveType.valueOf(moveString.toUpperCase)
