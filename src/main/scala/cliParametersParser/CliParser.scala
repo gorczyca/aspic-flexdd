@@ -18,7 +18,7 @@ object CliParser {
           case "aspicp" => success
           case _ => failure("Input format must be one of the following:\n aspicp")
         }
-        .text("Input format. Possible values are aba (default), apx and iccma")
+        .text("Input format.")
         .valueName("<input format>"),
       opt[String]('g', "goal")
         .action((x, c) => c.copy(goal = Some(x))),
