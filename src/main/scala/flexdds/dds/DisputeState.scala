@@ -2,6 +2,9 @@ package flexdds.dds
 
 import aspic.framework.Rule
 
+// TODO: use of reflection later prohibit!
+
+
 object DisputeState {
  def apply(): DisputeState = DisputeState(Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty,Set.empty, Set.empty,Set.empty)
  def apply(inconsistentStrictRules: Set[Rule], inconsistentDefeasibleRules: Set[Rule]): DisputeState = DisputeState(Set.empty, Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,inconsistentStrictRules,inconsistentDefeasibleRules,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty,Set.empty, Set.empty,Set.empty,Set.empty,Set.empty)
@@ -64,9 +67,18 @@ case class DisputeState(
   lazy val bStatements: Set[String] = pStatements ++ oStatements
   lazy val pBlockedRules: Set[Rule] = pBlockedStrictRules ++ pBlockedDefeasibleRules //
 
+  // TODO: only temporary
+  private val minimalPropertiesNames: Seq[String] = Seq("pStatements", "pRules", "oStatements", "oRules")
+  private val allPropertiesNames: Seq[String] = Seq("pStatements", "pRules", "oStatements", "oRules", "adoptedOrdinaryPremises", "adoptedDefeasibleRules", "rejectedOrdinaryPremises", "rejectedDefeasibleRules", "blockedRules", "pBlockedStrictRules", "pBlockedDefeasibleRules", "pPlayedUnexpandedStatements", "playedFullyExpandedStatements", "bBlockedPlayedStatements", "bBlockedPlayedRules", "pCompleteStatements", "pCompleteRules", "bUnblockedCompleteStatements", "bUnblockedCompleteRules", "bUnblockedStatementsSupportingContrariesOfAdoptedPieces", "bUnblockedRulesSupportingContrariesOfAdoptedPieces", "bUnblockedStatementsSupportingContrariesOfCurrentlyDefendedPieces", "bUnblockedRulesSupportingContrariesOfCurrentlyDefendedPieces", "ordinaryPremiseCulpritsCandidates", "defeasibleRuleCulpritsCandidates", "currentlyDefendedOrdinaryPremises", "currentlyDefendedDefeasibleRules")
+
+  private def getClassFields(fieldNames: Seq[String]): String = this.getClass.getDeclaredFields.filter(f => fieldNames.contains(f.getName)).map(field => s"${field.getName}:\n\t${field.get(this).asInstanceOf[Set[Any]].mkString("; ")}").mkString("\n")
+
+  override def toString: String = getClassFields(minimalPropertiesNames)
+  def toFullString: String = getClassFields(allPropertiesNames)
 
 
-  override def toString: String = {
+  @deprecated
+  def toStringDecorate: String = {
 
 
     val decorate: Set[String] | Set[Rule] => String => String => String = elems => decor => delimit => elems.map(s => s"$decor$s").mkString(delimit)

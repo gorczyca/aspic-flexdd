@@ -4,7 +4,16 @@ import aspic.framework.{Framework, Rule, contraries, contrariesOf, labelContrari
 
 import scala.annotation.tailrec
 
+
 sealed trait DisputeStateDelta {
+
+  override def toString: String = this match
+     // TODO: DRY
+    case ProponentStatement(s) => s
+    case ProponentRule(r) => r.toString
+    case OpponentStatement(s) => s
+    case OpponentRule(r) => r.toString
+
   def performMove(state: DisputeState)(implicit framework: Framework): DisputeState = {
     val (pStatements, pRules, oStatements, oRules) = this match
       case ProponentStatement(s) => (Set(s), Set.empty[Rule], Set.empty[String], Set.empty[Rule])
@@ -173,10 +182,10 @@ sealed trait DisputeStateDelta {
                                                   remainingRules: Set[Rule],
                                                   possibleStatements: Set[String]): (Set[String], Set[Rule]) = {
 
-    val (nBNonBlockedRulesSupportingS, nRemainingRules) = remainingRules.partition(_.body.subsetOf(bNonBlockedStatementsSupportingS))
+    val (nBNonBlockedRulesSupportingS, nRemainingRules) = remainingRules.partition(rule => bNonBlockedStatementsSupportingS.contains(rule.head))
     if (nBNonBlockedRulesSupportingS.isEmpty) (bNonBlockedStatementsSupportingS, bNonBlockedRulesSupportingS)
     else
-      getUnblockedPiecesSupportingS(bNonBlockedStatementsSupportingS ++ nBNonBlockedRulesSupportingS.map(_.head) intersect possibleStatements, // TODO: poss. stmts most likely not necessary
+      getUnblockedPiecesSupportingS(bNonBlockedStatementsSupportingS ++ nBNonBlockedRulesSupportingS.flatMap(_.body) intersect possibleStatements, // TODO: poss. stmts most likely not necessary
         bNonBlockedRulesSupportingS ++ nBNonBlockedRulesSupportingS,
         nRemainingRules,
         possibleStatements
