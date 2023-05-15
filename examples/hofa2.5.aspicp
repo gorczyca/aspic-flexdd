@@ -1,6 +1,6 @@
 % Strict rules
 r:-p,q.
-v:-nS.
+nS:-v.
 
 % Defeasible rules
 d1:p:-q.
@@ -25,3 +25,6 @@ d2:nD2.
 d3:nD3.
 d4:nD4.
 d5:nD5.
+s:nS.
+u:nU.
+x:nX.

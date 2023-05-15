@@ -22,6 +22,8 @@ object CliParser {
         .valueName("<input format>"),
       opt[String]('g', "goal")
         .action((x, c) => c.copy(goal = Some(x))),
+      opt[Unit]('s', "solve")
+        .action((_, c) => c.copy(solve = true))
     )
   }
 

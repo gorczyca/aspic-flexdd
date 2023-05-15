@@ -4,7 +4,7 @@ import flexdds.dds.{DisputeState, ProponentStatement}
 
 import scala.util.{Failure, Success}
 import aspic.framework.Framework
-
+import cli.CliState
 
 
 object Main {
@@ -19,15 +19,19 @@ object Main {
 
   private def proceed(config: CliParserConfig): Unit = {
     AspicpParser.parse(config.inputFilePath) match
-      case Success(framework: Framework) =>
-        // TODO: don't do it here
-        //  allow also for more goals
-        config.goal match
-          case None => Console.err.println("Need to specify the goal in CLI parameters.")
-          case Some(goal) =>
-            val initialDState = ProponentStatement(goal).performMove(DisputeState(framework.inconsistentStrictRules, framework.inconsistentDefeasibleRules))(framework)
-            val x = 1
+      case Failure(e) => Console.err.println(s"Error while parsing the input file.\nException message: ${e.getMessage}")
+      //  allow also for more goals
+      case Success(framework: Framework) => 
+        val goal = config.goal match
+          case Some(g) => Some(g)
+          case None if framework.goals.nonEmpty => Some(framework.goals.head) // TODO: allow for more goals also
+          case _ => None
 
-      case _ => Console.err.println("Error while parsing the input file.")
+        goal match
+          case None => Console.err.println("Need to specify the goal in CLI parameters or within the input framework file.")
+          case Some(g) => 
+            val cliState = CliState(g, framework, config.advancement, config.termination)
+            CliState.runCliInterface(cliState)
+    
   }
 }
