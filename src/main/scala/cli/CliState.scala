@@ -59,6 +59,28 @@ object CliState {
 
         state.copy(currentState = nextDState, possibleMoves = nextPossibleMoves, performedMoves = nextPerformedMoves)
 
+      case s"ca $advancementString" =>
+        if (!AdvancementType.values.map(_.toString).contains(advancementString.toUpperCase)) {
+          println(s"Invalid advancement type.")
+          state
+        } else {
+          val advancement = AdvancementType.valueOf(advancementString.toUpperCase)
+          println(s"Advancement type set to $advancement")
+          state.copy(advancement = advancement)
+        }
+
+      case s"ct $terminationString" =>
+        if (!TerminationCriterion.values.map(_.toString).contains(terminationString.toUpperCase)) {
+          println(s"Invalid termination criterion..")
+          state
+        } else {
+          val termination = TerminationCriterion.valueOf(terminationString.toUpperCase)
+          println(s"Termination criterion set to $termination")
+          state.copy(termination = termination)
+        }
+
+      case "m" => println(state.performedMoves.zipWithIndex.map((move, index) => s"${index+1}: $move").mkString("\n")); state
+
 
       case movePattern(moveString, indexString) if MoveType.values.map(_.toString).contains(moveString.toUpperCase) =>
         val move = MoveType.valueOf(moveString.toUpperCase)

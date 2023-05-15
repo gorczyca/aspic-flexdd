@@ -5,7 +5,6 @@ import flexdds.dds.DisputeState
 import flexdds.enums.MoveType.{OB1, OB2, OF1, OF2, PB1, PB2, PF1, PF2}
 import flexdds.enums.AdvancementType.{DAB, DABF, DC, DS}
 
-import java.awt.Frame
 import scala.collection.immutable.Set
 
 case class AdvancementMoves(advancement: AdvancementType, moves: Set[MoveType])

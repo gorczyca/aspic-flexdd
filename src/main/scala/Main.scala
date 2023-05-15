@@ -31,6 +31,7 @@ object Main {
           case None => Console.err.println("Need to specify the goal in CLI parameters or within the input framework file.")
           case Some(g) => 
             val cliState = CliState(g, framework, config.advancement, config.termination)
+            println("Derivation started.")
             CliState.runCliInterface(cliState)
     
   }
