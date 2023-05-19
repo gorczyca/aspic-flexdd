@@ -5,6 +5,7 @@ import flexdds.dds.{DisputeState, ProponentStatement}
 import scala.util.{Failure, Success}
 import aspic.framework.Framework
 import cli.CliState
+import automatic.{DisputeStateAuto, Reasoner}
 
 
 object Main {
@@ -29,10 +30,17 @@ object Main {
 
         goal match
           case None => Console.err.println("Need to specify the goal in CLI parameters or within the input framework file.")
-          case Some(g) => 
-            val cliState = CliState(g, framework, config.advancement, config.termination)
-            println("Derivation started.")
-            CliState.runCliInterface(cliState)
-    
+          case Some(g) =>
+            val state = ProponentStatement(g).performMove(DisputeState(Set(g), framework.inconsistentStrictRules,framework.inconsistentDefeasibleRules))(framework)
+            val autoReasoner = Reasoner(config.advancement, config.termination, config.moveTypeOrdering, config.dfs, framework)
+            val cliState = CliState(state, framework, config.advancement, config.termination, autoReasoner)
+            if (config.solve) {
+              autoReasoner.run(List(DisputeStateAuto(state))) match
+                case (Some(_), _) => println("YES")
+                case _ => println("NO")
+            } else {
+              println("Derivation started.")
+              CliState.runCliInterface(cliState)
+            }
   }
 }

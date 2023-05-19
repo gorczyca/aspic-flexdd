@@ -1,9 +1,11 @@
 package flexdds.enums
 
-import aspic.framework.{Framework, contraries, labelContraries}
-import flexdds.dds.DisputeState
+import aspic.framework.{Framework, contraries, statementContraries}
+import flexdds.dds.{DisputeState, DisputeStateDelta}
 import flexdds.enums.MoveType.{OB1, OB2, OF1, OF2, PB1, PB2, PF1, PF2}
+import flexdds.enums.filterPossibleMoves
 import flexdds.enums.AdvancementType.{DAB, DABF, DC, DS}
+
 
 import scala.collection.immutable.Set
 
@@ -12,18 +14,20 @@ case class AdvancementMoves(advancement: AdvancementType, moves: Set[MoveType])
 
 enum TerminationCriterion(proponentWonMoves: Set[AdvancementMoves], opponentWonMoves: Set[AdvancementMoves]) {
 
-  def checkIfOver(state: DisputeState, framework: Framework): Option[Boolean] = {
+  def checkIfOver(state: DisputeState, framework: Framework, filterMoves: DisputeStateDelta => Boolean = _ => true): Option[Boolean] = {
     if (proponentWinning(state, framework)) {
-      if (this.proponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).keySet intersect advMoves.moves).isEmpty)) Some(true)
+//      if (this.proponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).map((moveType, moves) => (moveType, moves.filter(filterMoves))).filterEmptyOut.keySet intersect advMoves.moves).isEmpty)) Some(true)
+      if (this.proponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).filterPossibleMoves(filterMoves).keySet intersect advMoves.moves).isEmpty)) Some(true)
       else None
     } else {
-      if (this.opponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).keySet intersect advMoves.moves).isEmpty)) Some(false)
+//      if (this.opponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).map((moveType, moves) => (moveType, moves.filter(filterMoves))).filterEmptyOut.keySet intersect advMoves.moves).isEmpty)) Some(false)
+      if (this.opponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).filterPossibleMoves(filterMoves).keySet intersect advMoves.moves).isEmpty)) Some(false)
       else None
     }
   }
 
   private def proponentWinning(state: DisputeState, framework: Framework): Boolean =
-    (state.goals ++ state.rejectedOrdinaryPremises.contraries(framework) ++ state.rejectedDefeasibleRules.labelContraries(framework)).subsetOf(state.pCompleteStatements) && (state.adoptedOrdinaryPremises.contraries(framework) ++ state.adoptedDefeasibleRules.labelContraries(framework)).intersect(state.bUnblockedCompleteStatements).isEmpty
+    (state.goals ++ state.rejectedOrdinaryPremises.contraries(framework) ++ state.rejectedDefeasibleRules.statementContraries(framework)).subsetOf(state.pCompleteStatements) && (state.adoptedOrdinaryPremises.contraries(framework) ++ state.adoptedDefeasibleRules.statementContraries(framework)).intersect(state.bUnblockedCompleteStatements).isEmpty
 
   case TA extends TerminationCriterion(
     proponentWonMoves = Set(AdvancementMoves(DAB, Set(OB1, OB2, OF2))),

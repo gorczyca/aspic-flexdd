@@ -21,7 +21,7 @@ case class Framework(strictRules: Set[Rule],
 
     lazy val inconsistentStrictRules: Set[Rule] = getInconsistentRulesBasedOnOrdinaryPremisesInTheirBodies(strictRules)
 
-    lazy val inconsistentDefeasibleRules: Set[Rule] = getInconsistentRulesBasedOnOrdinaryPremisesInTheirBodies(defeasibleRules) ++ defeasibleRules.filter(rule => (rule.statements intersect Set(rule).labelContraries(this)).nonEmpty)
+    lazy val inconsistentDefeasibleRules: Set[Rule] = getInconsistentRulesBasedOnOrdinaryPremisesInTheirBodies(defeasibleRules) ++ defeasibleRules.filter(rule => (rule.statements intersect Set(rule).statementContraries(this)).nonEmpty)
 
     // TODO:
     lazy val inconsistentStatements: Set[String] = contraries.filter(ctr => Set(ctr.statement).contraries(this).contains(ctr.statement)).map(_.statement)
@@ -35,12 +35,23 @@ extension (statements: Set[String])
     // return preimage of contraries (assumptions)
     def contrariesOf(implicit framework: Framework): Set[String] = framework.contraries.filter(ctr => statements.contains(ctr.statementContrary)).map(_.statement)
 
-    def ruleContrariesOf(implicit framework: Framework): Set[Rule] = framework.defeasibleRules.filter(_.label match
-        case Some(label) => (Set(label).contraries intersect statements).nonEmpty
+    // return rule preimage of contraries
+    def ruleContrariesOf(implicit framework: Framework): Set[Rule] = framework.defeasibleRules.filter {
+        case Rule(head, _, false, Some(label)) => (Set(label, head).contraries intersect statements).nonEmpty
         case _ => false
-    )
+    }
+
+
 
 
 extension (rules: Set[Rule])
-    def labelContraries(implicit framework: Framework): Set[String] = rules.filterNot(_.isStrict).map(_.label.get).contraries
+    def labels: Set[String] = rules.filterNot(_.isStrict).map(_.label.get)
+
+    def statementContraries(implicit framework: Framework): Set[String] = rules.filterNot(_.isStrict).foldLeft(Set.empty) {
+        (accumulator, rule) => rule match
+            case Rule(head, _, false, Some(label)) => accumulator ++ Set(label, head).contraries
+            case _ => Set.empty
+    }
+
+
 

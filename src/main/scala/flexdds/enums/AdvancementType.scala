@@ -1,7 +1,7 @@
 package flexdds.enums
 
 import flexdds.dds.DisputeState
-import aspic.framework.{Rule, Framework, contraries, labelContraries}
+import aspic.framework.{Rule, Framework, contraries, statementContraries}
 import flexdds.enums.MoveType.{PB1, PB2, PF1, PF2, OB1, OB2, OF1, OF2}
 import flexdds.enums.MoveExtractor.{RuleExtractor, StatementExtractor}
 import flexdds.dds.DisputeStateDelta
@@ -56,7 +56,7 @@ enum AdvancementType(val allowedMoves: Map[Seq[MoveType], MoveExtractor]) {
           Seq(OB2, OF2) -> StatementExtractor((state, framework) =>
             state.currentlyDefendedOrdinaryPremises
               .contraries(framework) ++ state.currentlyDefendedDefeasibleRules
-              .labelContraries(framework)
+              .statementContraries(framework)
           )
         )
       )
@@ -81,6 +81,13 @@ enum AdvancementType(val allowedMoves: Map[Seq[MoveType], MoveExtractor]) {
 
     val allowedMovesFlattened = this.allowedMoves.flatMap((moveTypeSeq, extr) => moveTypeSeq.map(moveType => (moveType, extr)))
 
-    allowedMovesFlattened.map((moveType, extractor) => (moveType, moveType.possibleMoves(state, framework, extractor.extract(state, framework)).toList)).filter(_._2.nonEmpty)
+    allowedMovesFlattened.map((moveType, extractor) => (moveType, moveType.possibleMoves(state, framework, extractor.extract(state, framework)).toList)).filterEmptyOut
   }    
 }
+
+extension (possibleMoves: Map[MoveType, List[DisputeStateDelta]])
+
+  def filterPossibleMoves(filterMove: DisputeStateDelta => Boolean): Map[MoveType, List[DisputeStateDelta]] = possibleMoves.map((moveType, moves) => (moveType, moves.filter(filterMove))).filterEmptyOut
+
+  def filterEmptyOut: Map[MoveType, List[DisputeStateDelta]] = possibleMoves.filter(_._2.nonEmpty)
+

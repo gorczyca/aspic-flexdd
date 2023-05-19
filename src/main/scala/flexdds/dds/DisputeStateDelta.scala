@@ -1,11 +1,16 @@
 package flexdds.dds
 
-import aspic.framework.{Framework, Rule, contraries, contrariesOf, labelContraries, ruleContrariesOf}
+import aspic.framework.{Framework, Rule, contraries, contrariesOf, statementContraries, ruleContrariesOf}
 
 import scala.annotation.tailrec
 
 
 sealed trait DisputeStateDelta {
+
+  def premiseOrRuleHead: String
+
+
+  def statements: Set[String]
 
   override def toString: String = this match
      // TODO: DRY
@@ -36,14 +41,14 @@ sealed trait DisputeStateDelta {
       val nAdoptedDefeasibleRules = state.adoptedDefeasibleRules ++ newAdoptedDefeasibleRules
       val newRejectedOrdinaryPremises = pStatements.contrariesOf intersect framework.ordinaryPremises
       val nRejectedOrdinaryPremises = state.rejectedOrdinaryPremises ++ newRejectedOrdinaryPremises
-      val nRejectedDefeasibleRules = state.rejectedDefeasibleRules ++ pStatements.ruleContrariesOf
+      val nRejectedDefeasibleRules = state.rejectedDefeasibleRules ++ pStatements.ruleContrariesOf  // TODO: maybe here also
 
       //
       val nBlockedRules = state.blockedRules ++ framework.rules.filter(rule => (rule.body intersect newRejectedOrdinaryPremises).nonEmpty)
       // this could just be done in a single step, without distinction between defeasible and strict
-      val nPBlockedStrictRules = state.pBlockedStrictRules ++ framework.strictRules.filter(rule => (rule.statements intersect (newAdoptedOrdinaryPremises.contraries union newAdoptedDefeasibleRules.labelContraries)).nonEmpty)
+      val nPBlockedStrictRules = state.pBlockedStrictRules ++ framework.strictRules.filter(rule => (rule.statements intersect (newAdoptedOrdinaryPremises.contraries union newAdoptedDefeasibleRules.statementContraries)).nonEmpty)
 
-      val nPBlockedDefeasibleRules = state.pBlockedDefeasibleRules ++ framework.defeasibleRules.filter(rule => (rule.statements intersect (newAdoptedOrdinaryPremises.contraries union newAdoptedDefeasibleRules.labelContraries)).nonEmpty) // the defeasible rules rejected because their labels attacked already covered by nRejectedDefeasibleRules
+      val nPBlockedDefeasibleRules = state.pBlockedDefeasibleRules ++ framework.defeasibleRules.filter(rule => (rule.statements intersect (newAdoptedOrdinaryPremises.contraries union newAdoptedDefeasibleRules.statementContraries)).nonEmpty) // the defeasible rules rejected because their labels attacked already covered by nRejectedDefeasibleRules
       val nPPlayedUnexpandedStatements = nPStatements.filter(stmt => !nPRules.exists(_.head == stmt))
 
       // aux
@@ -84,9 +89,9 @@ sealed trait DisputeStateDelta {
       val nCulpritCandidatesRules = nBUnblockedRulesSupportingContrariesOfAdoptedPieces intersect framework.defeasibleRules
 
       val nCurrentlyDefendedOrdinaryPremises = (framework.ordinaryPremises -- nRejectedOrdinaryPremises).filter(stmt => Set(stmt).contraries.intersect(nBNonBlockedCompleteStatements).isEmpty)
-      val nCurrentlyDefendedDefeasibleRules = (framework.defeasibleRules -- nRejectedDefeasibleRules).filter(rule => Set(rule).labelContraries.intersect(nBNonBlockedCompleteStatements).isEmpty)
+      val nCurrentlyDefendedDefeasibleRules = (framework.defeasibleRules -- nRejectedDefeasibleRules).filter(rule => Set(rule).statementContraries.intersect(nBNonBlockedCompleteStatements).isEmpty)
 
-      val nCurrentlyDefendedPiecesContraries = nCurrentlyDefendedOrdinaryPremises.contraries ++ nCurrentlyDefendedDefeasibleRules.labelContraries
+      val nCurrentlyDefendedPiecesContraries = nCurrentlyDefendedOrdinaryPremises.contraries ++ nCurrentlyDefendedDefeasibleRules.statementContraries
 
       val (nBUnblockedStatementsSupportingContrariesOfCurrentlyDefendedPieces, bUnblockedRulesSupportingContrariesOfCurrentlyDefendedPieces) = getUnblockedPiecesSupportingS(
         (nStatements -- nBBlockedPlayedStatements) intersect (nCurrentlyDefendedPiecesContraries),
@@ -196,11 +201,26 @@ sealed trait DisputeStateDelta {
 }
 
 
+sealed trait StatementMove(statement: String) extends DisputeStateDelta {
+  override def premiseOrRuleHead: String = statement
+  override def statements: Set[String] = Set(statement)
+}
+sealed trait RuleMove(rule: Rule) extends DisputeStateDelta {
+  override def premiseOrRuleHead: String = rule.head
+  override def statements: Set[String] = rule.statements
+}
 
 
-case class ProponentStatement(statement: String) extends DisputeStateDelta
-case class ProponentRule(rule: Rule) extends DisputeStateDelta
-case class OpponentStatement(statement: String) extends DisputeStateDelta
-case class OpponentRule(rule: Rule) extends DisputeStateDelta
+case class ProponentStatement(statement: String) extends StatementMove(statement)
+
+case class ProponentRule(rule: Rule) extends RuleMove(rule)
+
+case class OpponentStatement(statement: String) extends StatementMove(statement)
+
+case class OpponentRule(rule: Rule) extends RuleMove(rule)
+
+
+extension (performedMoves: List[DisputeStateDelta])
+  def performedMovesToString: String = performedMoves.zipWithIndex.map((move, index) => s"${index+1}: $move").mkString("\n")
 
 
