@@ -49,6 +49,9 @@ case class Reasoner(advancement: AdvancementType,
     val currentState = currentAState.state
 
     val possibleMoves = advancement.possibleMoves(framework, currentState).filterPossibleMoves(filterMoves(currentAState, framework))
+    if (possibleMoves.isEmpty)
+      return List.empty
+
     val chosenMoveType = possibleMoves.keys.map(mType => (mType, moveTypeOrdering.indexOf(mType))).minBy(_._2)._1
 
     // all possible moves of type chosenMoveType
@@ -71,7 +74,7 @@ case class Reasoner(advancement: AdvancementType,
     // List[(DisputeStateDelta, DisputeState)] containing tuples: (move to be performed, state after performing it)
     val performedMovesChunk = movesChunk.map(move => (move, move.performMove(currentState)(framework)))
     // List[DisputeStateAuto] list containing all DisputeStateAuto after performing moves from performed moves chunk
-    val newAStates = performedMovesChunk.map{ case (move, newState) => currentAState.copy(state = newState, performedMoves = currentAState.performedMoves :+ move) }
+    val newAStates = performedMovesChunk.map{ case (move, newState) => currentAState.copy(state = newState, performedMoves = currentAState.performedMoves :+ (move, chosenMoveType)) }
 
     // depending on the move type chosen decide how to prepare the next moves
     chosenMoveType match

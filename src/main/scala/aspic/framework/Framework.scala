@@ -17,14 +17,15 @@ case class Framework(strictRules: Set[Rule],
     lazy val premises: Set[String] = axioms union ordinaryPremises
 
 
-    def getInconsistentRulesBasedOnOrdinaryPremisesInTheirBodies(rules: Set[Rule]): Set[Rule] = rules.filter(rule => (rule.statements intersect (rule.body intersect ordinaryPremises).contraries(this)).nonEmpty)
+    private def getInconsistentRulesBasedOnOrdinaryPremisesInTheirBodies(rules: Set[Rule]): Set[Rule] = rules.filter(rule => (rule.statements intersect (rule.body intersect ordinaryPremises).contraries(this)).nonEmpty)
 
     lazy val inconsistentStrictRules: Set[Rule] = getInconsistentRulesBasedOnOrdinaryPremisesInTheirBodies(strictRules)
 
     lazy val inconsistentDefeasibleRules: Set[Rule] = getInconsistentRulesBasedOnOrdinaryPremisesInTheirBodies(defeasibleRules) ++ defeasibleRules.filter(rule => (rule.statements intersect Set(rule).statementContraries(this)).nonEmpty)
 
     // TODO:
-    lazy val inconsistentStatements: Set[String] = contraries.filter(ctr => Set(ctr.statement).contraries(this).contains(ctr.statement)).map(_.statement)
+//    lazy val inconsistentStatements: Set[String] = contraries.filter(ctr => Set(ctr.statement).contraries(this).contains(ctr.statement)).map(_.statement)
+    lazy val inconsistentStatements: Set[String] = contraries.filter(ctr => ctr.statement == ctr.statementContrary).map(_.statement)
 
 }
 

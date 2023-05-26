@@ -2,6 +2,7 @@ package automatic
 
 import aspic.framework.Rule
 import flexdds.dds.{DisputeState, DisputeStateDelta}
+import flexdds.enums.MoveType
 
 
 object DisputeStateAuto {
@@ -21,5 +22,5 @@ case class DisputeStateAuto(state: DisputeState,
                             // ignoredOrdinaryPremiseCulpritCandidates: Set[String],
                             // ignoredDefeasibleRuleCulpritCandidates: Set[Rule],
                             //
-                            performedMoves: List[DisputeStateDelta]
+                            performedMoves: List[(DisputeStateDelta, MoveType)]
                            )
