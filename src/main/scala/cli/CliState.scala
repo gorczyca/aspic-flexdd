@@ -2,6 +2,9 @@ package cli
 
 import scala.io.AnsiColor
 import scala.util.matching.Regex
+
+import logger.log
+
 import flexdds.dds.DisputeState
 import aspic.framework.Framework
 import automatic.{DisputeStateAuto, Reasoner}
@@ -16,9 +19,10 @@ object CliState {
             framework: Framework,
             advancement: AdvancementType,
             termination: TerminationCriterion,
-            reasoner: Reasoner): CliState = {
+            reasoner: Reasoner,
+            logger: String => Unit): CliState = {
 
-    CliState(state, state, framework, advancement, termination, advancement.possibleMoves(framework, state), List.empty, reasoner)
+    CliState(state, state, framework, advancement, termination, advancement.possibleMoves(framework, state), List.empty, reasoner, logger)
   }
 
   private def getUserInput: String = {
@@ -37,9 +41,15 @@ object CliState {
 
   @tailrec
   def runCliInterface(state: CliState): Unit = {
+
+    state.logger("Checking termination")
+
+    communicateTermination(state)
+
+    state.logger("Termination checked")
+
     val obtainedState = processInput(state)
     val newState = obtainedState.copy(possibleMoves = obtainedState.advancement.possibleMoves(obtainedState.framework, obtainedState.currentState))
-    communicateTermination(newState)
 
     if (!newState.quit) runCliInterface(newState)
   }
@@ -60,6 +70,12 @@ object CliState {
         state
   }
 
+  private def reconstructState(state: CliState, performedMoves: List[(DisputeStateDelta, MoveType)]): CliState = {
+    // reconstruct the state
+    val nextDState = performedMoves.foldLeft(state.initialState)((cState, m) => m._1.performMove(cState)(state.framework))
+    state.copy(currentState = nextDState, performedMoves = performedMoves)
+  }
+
   private def processInput(state: CliState): CliState = {
 
     val movePattern: Regex = """^(\w+)\s+(\d+)""".r
@@ -71,11 +87,8 @@ object CliState {
       case "ss" => println(state.currentState.toFullString); state
       case "a" => runAutomaticReasoner(state, List(DisputeStateAuto(state.currentState)))
       case "i" => println(s"Advancement type:\t${state.advancement}\nTermination criterion:\t${state.termination}"); state
-      case "b" =>
-        val nextPerformedMoves = state.performedMoves.dropRight(1)
-        // reconstruct the state
-        val nextDState = nextPerformedMoves.foldLeft(state.initialState)((cState, move) => move.performMove(cState)(state.framework))
-        state.copy(currentState = nextDState, performedMoves = nextPerformedMoves)
+      case "bb" => reconstructState(state, List.empty)
+      case "b" => reconstructState(state, state.performedMoves.dropRight(1))
 
       case s"ca $advancementString" =>
         if (!AdvancementType.values.map(_.toString).contains(advancementString.toUpperCase)) {
@@ -101,21 +114,21 @@ object CliState {
 
 
       case movePattern(moveString, indexString) if MoveType.values.map(_.toString).contains(moveString.toUpperCase) =>
-        val move = MoveType.valueOf(moveString.toUpperCase)
+        val moveType = MoveType.valueOf(moveString.toUpperCase)
         val index = indexString.toInt
-        if (!state.possibleMoves.contains(move)) {
-          println(s"Move $move not applicable.");
+        if (!state.possibleMoves.contains(moveType)) {
+          println(s"Move $moveType not applicable.");
           state
         }
         else {
-          if (state.possibleMoves(move).length < index) {
-            println(s"Type $move has no move of index $index applicable.");
+          if (state.possibleMoves(moveType).length < index) {
+            println(s"Type $moveType has no move of index $index applicable.");
             state
           }
           else {
-            val moveToPerform = state.possibleMoves(move)(index)
+            val moveToPerform = state.possibleMoves(moveType)(index)
             val nextDState = moveToPerform.performMove(state.currentState)(state.framework)
-            val nextPerformedMoves = state.performedMoves :+ moveToPerform
+            val nextPerformedMoves = state.performedMoves :+ (moveToPerform, moveType)
 
             println(s"${nextPerformedMoves.length}: ${moveToPerform}")
 
@@ -136,10 +149,11 @@ case class CliState(
                      advancement: AdvancementType,
                      termination: TerminationCriterion,
                      possibleMoves: Map[MoveType, List[DisputeStateDelta]],
-                     performedMoves: List[DisputeStateDelta],
+                     performedMoves: List[(DisputeStateDelta, MoveType)],
                      reasoner: Reasoner,
+                     logger: String => Unit,
                      quit: Boolean = false
-                   ) {}
+                   )
 
 
 extension (possibleMoves: Map[MoveType, List[DisputeStateDelta]])

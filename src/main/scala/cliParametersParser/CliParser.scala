@@ -16,7 +16,7 @@ object CliParser {
       opt[String]('i', "inputFormat")
         .action((x, c) => c.copy(inputFormat = x))
         .validate {
-          case "aspicp" => success
+          case "aspicp" | "apx" => success
           case _ => failure("Input format must be one of the following:\n aspicp")
         }
         .text("Input format.")
@@ -25,6 +25,8 @@ object CliParser {
         .action((x, c) => c.copy(goal = Some(x))),
       opt[Unit]('s', "solve")
         .action((_, c) => c.copy(solve = true)),
+      opt[Unit]('l', "log")
+        .action((_, c) => c.copy(log = true)),
       opt[String]('d', "dfs")
         .validate {
           case "0" | "1" => success

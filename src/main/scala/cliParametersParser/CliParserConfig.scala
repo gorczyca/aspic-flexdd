@@ -9,6 +9,7 @@ case class CliParserConfig(inputFilePath: String = "",
                            inputFormat: String = "aspicp",
                            goal: Option[String] = None,
                            solve: Boolean = false,
+                           log: Boolean = false,
                            advancement: AdvancementType = DABF,
                            termination: TerminationCriterion = TA,
                            // automatic solver settings
