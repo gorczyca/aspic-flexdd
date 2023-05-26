@@ -27,7 +27,8 @@ enum TerminationCriterion(proponentWonMoves: Set[AdvancementMoves], opponentWonM
   }
 
   private def proponentWinning(state: DisputeState, framework: Framework): Boolean =
-    (state.goals ++ state.rejectedOrdinaryPremises.contraries(framework) ++ state.rejectedDefeasibleRules.statementContraries(framework)).subsetOf(state.pCompleteStatements) && (state.adoptedOrdinaryPremises.contraries(framework) ++ state.adoptedDefeasibleRules.statementContraries(framework)).intersect(state.bUnblockedCompleteStatements).isEmpty
+//    (state.goals ++ state.rejectedOrdinaryPremises.contraries(framework) ++ state.rejectedDefeasibleRules.statementContraries(framework)).subsetOf(state.pCompleteStatements) && (state.adoptedOrdinaryPremises.contraries(framework) ++ state.adoptedDefeasibleRules.statementContraries(framework)).intersect(state.bUnblockedCompleteStatements).isEmpty
+    (state.goals.subsetOf(state.pCompleteStatements) &&  state.rejectedOrdinaryPremises.forall(Set(_).contraries(framework).intersect(state.pCompleteStatements).nonEmpty) && state.rejectedDefeasibleRules.forall(Set(_).statementContraries(framework).intersect(state.pCompleteStatements).nonEmpty) && (state.adoptedOrdinaryPremises.contraries(framework) ++ state.adoptedDefeasibleRules.statementContraries(framework)).intersect(state.bUnblockedCompleteStatements).isEmpty)
 
   case TA extends TerminationCriterion(
     proponentWonMoves = Set(AdvancementMoves(DAB, Set(OB1, OB2, OF2))),

@@ -1,6 +1,7 @@
 package flexdds.dds
 
-import aspic.framework.{Framework, Rule, contraries, contrariesOf, statementContraries, ruleContrariesOf}
+import aspic.framework.{Framework, Rule, contraries, contrariesOf, ruleContrariesOf, statementContraries}
+import flexdds.enums.MoveType
 
 import scala.annotation.tailrec
 
@@ -54,7 +55,7 @@ sealed trait DisputeStateDelta {
       // aux
       val nStatements = nPStatements ++ nOStatements
       val nRules = nPRules ++ nORules
-      val nRemainingNonBlockedRules = framework.rules -- (nRules ++ nBlockedRules) // TODO: the additional def. rules are blocked only for the proponent?
+      val nRemainingNonBlockedRules = framework.rules -- (nRules ++ nBlockedRules ++ nRejectedDefeasibleRules) // TODO: the additional def. rules are blocked only for the proponent?
 
       val nPlayedFullyExpandedStatements = nStatements.filter(stmt => !nRemainingNonBlockedRules.exists(_.head == stmt))
 
@@ -68,7 +69,7 @@ sealed trait DisputeStateDelta {
       val (nPPlayedCompleteStatements, nPPlayedCompleteRules) = getPPlayedCompletePieces(
         state.pCompleteStatements ++ (pStatements intersect framework.premises),
         state.pCompleteRules,
-        pRules -- state.pCompleteRules
+        nPRules -- state.pCompleteRules
       )
 
       val (nBNonBlockedCompleteStatements, nBNonBlockedCompleteRules) = getBNonBlockedCompletePieces(
@@ -220,7 +221,7 @@ case class OpponentStatement(statement: String) extends StatementMove(statement)
 case class OpponentRule(rule: Rule) extends RuleMove(rule)
 
 
-extension (performedMoves: List[DisputeStateDelta])
-  def performedMovesToString: String = performedMoves.zipWithIndex.map((move, index) => s"${index+1}: $move").mkString("\n")
+extension (performedMoves: List[(DisputeStateDelta, MoveType)])
+  def performedMovesToString: String = performedMoves.zipWithIndex.map((m, index) => s"${index+1}: [${m._2}] ${m._1}").mkString("\n")
 
 
