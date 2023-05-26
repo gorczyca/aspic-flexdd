@@ -1,7 +1,7 @@
 package aspic.parser
 import aspic.framework.{Contrary, Rule}
 
-object AspicpParser extends Parser {
+object AspicpParser extends RegexParser {
   override def defeasibleRule: Parser[Rule] = identifier ~ ":" ~ identifier ~ ":-" ~ fields ~ "." ^^ {
     case label ~ ":" ~ head ~ ":-" ~ body ~ "." => Rule(head, body, isStrict = false, Some(label))
   }
