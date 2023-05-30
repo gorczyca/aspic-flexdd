@@ -211,14 +211,17 @@ sealed trait RuleMove(rule: Rule) extends DisputeStateDelta {
   override def statements: Set[String] = rule.statements
 }
 
+sealed trait ProponentMove extends DisputeStateDelta
+sealed trait OpponentMove extends DisputeStateDelta
 
-case class ProponentStatement(statement: String) extends StatementMove(statement)
 
-case class ProponentRule(rule: Rule) extends RuleMove(rule)
+case class ProponentStatement(statement: String) extends StatementMove(statement) with ProponentMove
 
-case class OpponentStatement(statement: String) extends StatementMove(statement)
+case class ProponentRule(rule: Rule) extends RuleMove(rule) with ProponentMove
 
-case class OpponentRule(rule: Rule) extends RuleMove(rule)
+case class OpponentStatement(statement: String) extends StatementMove(statement) with OpponentMove
+
+case class OpponentRule(rule: Rule) extends RuleMove(rule) with OpponentMove
 
 
 extension (performedMoves: List[(DisputeStateDelta, MoveType)])

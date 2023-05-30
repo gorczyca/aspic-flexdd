@@ -16,11 +16,25 @@ enum TerminationCriterion(proponentWonMoves: Set[AdvancementMoves], opponentWonM
 
   def checkIfOver(state: DisputeState, framework: Framework, filterMoves: DisputeStateDelta => Boolean = _ => true): Option[Boolean] = {
     if (proponentWinning(state, framework)) {
-//      if (this.proponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).map((moveType, moves) => (moveType, moves.filter(filterMoves))).filterEmptyOut.keySet intersect advMoves.moves).isEmpty)) Some(true)
+
+      // debugging
+
+      // TODO: remove
+      val unfilteredMoves =  this.proponentWonMoves.map(advMoves => (advMoves.advancement, advMoves.advancement.possibleMoves(framework, state).filter(x => advMoves.moves.contains(x._1))))
+
+      val filteredMoves =  this.proponentWonMoves.map(advMoves => (advMoves.advancement, advMoves.advancement.possibleMoves(framework, state).filterPossibleMoves(filterMoves).filter(x => advMoves.moves.contains(x._1))))
+
+
       if (this.proponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).filterPossibleMoves(filterMoves).keySet intersect advMoves.moves).isEmpty)) Some(true)
       else None
     } else {
-//      if (this.opponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).map((moveType, moves) => (moveType, moves.filter(filterMoves))).filterEmptyOut.keySet intersect advMoves.moves).isEmpty)) Some(false)
+
+    // TODO: remove
+//      val unfilteredMoves = this.opponentWonMoves.map(advMoves => (advMoves.advancement, advMoves.advancement.possibleMoves(framework, state).filter(x => advMoves.moves.contains(x._1))))
+//
+//      val filteredMoves = this.opponentWonMoves.map(advMoves => (advMoves.advancement, advMoves.advancement.possibleMoves(framework, state).filterPossibleMoves(filterMoves).filter(x => advMoves.moves.contains(x._1))))
+//
+
       if (this.opponentWonMoves.forall(advMoves => (advMoves.advancement.possibleMoves(framework, state).filterPossibleMoves(filterMoves).keySet intersect advMoves.moves).isEmpty)) Some(false)
       else None
     }

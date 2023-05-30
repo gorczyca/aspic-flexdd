@@ -1,11 +1,9 @@
 package automatic
 
-import aspic.framework.{Framework, contraries, contrariesOf, statementContraries, labels}
-import flexdds.dds.{DisputeStateDelta, ProponentRule}
+import aspic.framework.{Framework, contraries, contrariesOf, labels, statementContraries}
+import flexdds.dds.{DisputeStateDelta, ProponentMove, ProponentRule, RuleMove, StatementMove}
 import flexdds.enums.{AdvancementType, MoveType, TerminationCriterion, filterPossibleMoves}
-import flexdds.enums.MoveType.{PB1, PB2, PF1, PF2, OB1, OB2, OF1, OF2}
-import flexdds.dds.{RuleMove, StatementMove}
-
+import flexdds.enums.MoveType.{OB1, OB2, OF1, OF2, PB1, PB2, PF1, PF2}
 
 import scala.annotation.tailrec
 
@@ -34,14 +32,19 @@ case class Reasoner(advancement: AdvancementType,
 //      case _ => true
 //    })
 //  }
-  val filterMoves: (DisputeStateAuto, Framework) => DisputeStateDelta => Boolean = (state, framework) => move => {
-    move.statements.intersect(state.ignoredOrdinaryPremises).isEmpty &&
-      move.statements.contrariesOf(framework).intersect(state.ignoredNotAttackedStatements).isEmpty
+  val filterMoves: (DisputeStateAuto, Framework) => DisputeStateDelta => Boolean = (state, framework) => move =>
+    move match
+      case m: ProponentMove =>
+        m.statements.intersect(state.ignoredOrdinaryPremises).isEmpty &&
+          m.statements.contrariesOf(framework).intersect(state.ignoredNotAttackedStatements).isEmpty
+
+      case _ => true
+
 //      && (move match {
 //      case ProponentRule(rule) => !state.ignoredDefeasibleRules.contains(rule)
 //      case _ => true
 //    })
-  }
+
 
 
   private def generateNewDisputeStates(currentAState: DisputeStateAuto): List[DisputeStateAuto] = {
@@ -110,7 +113,9 @@ case class Reasoner(advancement: AdvancementType,
     val currentState = currentAState.state
 
     termination.checkIfOver(currentState, framework, filterMoves(currentAState, framework)) match
-      case Some(true) => (Some(currentAState), nRemainingAStates)
+      case Some(true) => {
+        (Some(currentAState), nRemainingAStates)
+      }
       case Some(false) => run(nRemainingAStates)
       case _ =>
         val newAStates = generateNewDisputeStates(currentAState)
