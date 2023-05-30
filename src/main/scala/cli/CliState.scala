@@ -97,7 +97,7 @@ object CliState {
         } else {
           val advancement = AdvancementType.valueOf(advancementString.toUpperCase)
           println(s"Advancement type set to $advancement")
-          state.copy(advancement = advancement)
+          state.copy(advancement = advancement, reasoner = state.reasoner.copy(advancement = advancement))
         }
 
       case s"ct $terminationString" =>
@@ -107,7 +107,7 @@ object CliState {
         } else {
           val termination = TerminationCriterion.valueOf(terminationString.toUpperCase)
           println(s"Termination criterion set to $termination")
-          state.copy(termination = termination)
+          state.copy(termination = termination, reasoner = state.reasoner.copy(termination = termination))
         }
 
       case "m" => println(state.performedMoves.performedMovesToString); state
